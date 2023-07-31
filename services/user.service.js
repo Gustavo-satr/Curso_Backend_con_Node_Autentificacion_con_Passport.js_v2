@@ -6,7 +6,12 @@ class UserService {
   constructor() {}
 
   async create(data) {
-    const newUser = await models.User.create(data);
+    const hash = await bcrypt.hash(data.password, 10);
+    const newUser = await models.User.create({
+      ...data,
+      password: hash
+    });
+    delete newUser.dataValues.password;
     return newUser;
   }
 
@@ -16,7 +21,6 @@ class UserService {
     });
     return rta;
   }
-
   async findOne(id) {
     const user = await models.User.findByPk(id);
     if (!user) {
@@ -24,18 +28,15 @@ class UserService {
     }
     return user;
   }
-
   async update(id, changes) {
     const user = await this.findOne(id);
     const rta = await user.update(changes);
     return rta;
   }
-
   async delete(id) {
     const user = await this.findOne(id);
     await user.destroy();
     return { id };
   }
 }
-
 module.exports = UserService;
